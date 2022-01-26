@@ -1,0 +1,7 @@
+apiVersion: office.a2ush.dev/v1alpha1
+kind: AttendanceBook
+metadata:
+  name: test-user1
+spec:
+  # TODO(user): Add fields here
+  attendance: present

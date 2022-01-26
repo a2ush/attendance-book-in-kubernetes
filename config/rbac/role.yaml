@@ -1,0 +1,41 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update
+- apiGroups:
+  - office.a2ush.dev
+  resources:
+  - attendancebooks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - office.a2ush.dev
+  resources:
+  - attendancebooks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - office.a2ush.dev
+  resources:
+  - attendancebooks/status
+  verbs:
+  - get
+  - patch
+  - update

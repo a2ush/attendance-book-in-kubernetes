@@ -1,0 +1,8 @@
+apiVersion: office.a2ush.dev/v1alpha1
+kind: AttendanceBook
+metadata:
+  name: attendancebook-sample-user
+spec:
+  # TODO(user): Add fields here
+  attendance: absent
+  reason: "Feel sleepy"

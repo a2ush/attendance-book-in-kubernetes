@@ -1,0 +1,6 @@
+apiVersion: office.a2ush.dev/v1alpha1
+kind: AttendanceBook
+metadata:
+  name: test-user2
+spec:
+  attendance: absent

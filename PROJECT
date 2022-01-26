@@ -1,0 +1,16 @@
+domain: a2ush.dev
+layout:
+- go.kubebuilder.io/v3
+projectName: attendance-book-in-kubernetes
+repo: github.com/a2ush/attendance-book-in-kubernetes
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: a2ush.dev
+  group: office
+  kind: AttendanceBook
+  path: github.com/a2ush/attendance-book-in-kubernetes/api/v1alpha1
+  version: v1alpha1
+version: "3"

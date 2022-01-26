@@ -1,0 +1,24 @@
+# permissions for end users to edit attendancebooks.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: attendancebook-editor-role
+rules:
+- apiGroups:
+  - office.a2ush.dev
+  resources:
+  - attendancebooks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - office.a2ush.dev
+  resources:
+  - attendancebooks/status
+  verbs:
+  - get
