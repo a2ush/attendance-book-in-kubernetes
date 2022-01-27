@@ -83,7 +83,6 @@ func main() {
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("attendancebook-controller"),
-		//		Recorder: record.NewBroadcaster().NewRecorder(clientgoscheme.Scheme, corev1.EventSource{Component: "attendance-book-controller"}),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AttendanceBook")
 		os.Exit(1)

@@ -69,10 +69,10 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		// }
 		// r.Recorder.Event(instance, "Normal", "Created", fmt.Sprintf("Created resource %s/%s", instance.Namespace, instance.Name))
 	}
-	if err != nil {
-		log.Println(err)
-		return ctrl.Result{}, err
-	}
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return ctrl.Result{}, err
+	// }
 
 	// if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 	// 	log.Printf("Deleting resource %s/%s\n", instance.Namespace, instance.Name)
@@ -93,6 +93,7 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+		log.Printf("Updated resource %s/%s\n", instance.Namespace, instance.Name)
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Updated", fmt.Sprintf("Attendance: %s, Reason: %s", desire.Status.Attendance, desire.Status.Reason))
 	}
 
