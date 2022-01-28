@@ -19,9 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"log"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -62,39 +60,27 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	err := r.Get(ctx, req.NamespacedName, instance)
 
 	if err != nil && errors.IsNotFound(err) {
-		log.Printf("Creating new resource %s/%s\n", instance.Namespace, instance.Name)
-		// err = r.Create(ctx, instance)
-		// if err != nil {
-		// 	return reconcile.Result{}, err
-		// }
-		// r.Recorder.Event(instance, "Normal", "Created", fmt.Sprintf("Created resource %s/%s", instance.Namespace, instance.Name))
+		r.Recorder.Event(instance, "Normal", "Deleted", fmt.Sprintf("Deleted resource %s", req.NamespacedName.String()))
+		return reconcile.Result{}, nil
 	}
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return ctrl.Result{}, err
-	// }
-
-	// if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
-	// 	log.Printf("Deleting resource %s/%s\n", instance.Namespace, instance.Name)
-	// 	err = r.Delete(ctx, instance)
-	// 	if err != nil {
-	// 		return reconcile.Result{}, err
-	// 	}
-	// 	r.Recorder.Event(instance, "Normal", "Deleted", fmt.Sprintf("Deleted resource %s/%s", instance.Namespace, instance.Name))
-	// 	return ctrl.Result{}, nil
-	// }
 
 	desire := instance.DeepCopy()
 
 	if desire.Status.Attendance != instance.Spec.Attendance || desire.Status.Reason != instance.Spec.Reason {
-		desire.Status.Attendance = instance.Spec.Attendance
-		desire.Status.Reason = instance.Spec.Reason
-		err = r.Status().Update(ctx, desire)
-		if err != nil {
-			return reconcile.Result{}, err
+
+		// Status.Attendance is "" when first created.
+		if desire.Status.Attendance == "" {
+			if err = r.changeStatus(desire, instance); err != nil {
+				return reconcile.Result{}, err
+			}
+			r.Recorder.Event(instance, "Normal", "Created", fmt.Sprintf("Created resource. Attendance/Reason: %s/%s", desire.Status.Attendance, desire.Status.Reason))
+
+		} else {
+			if err = r.changeStatus(desire, instance); err != nil {
+				return reconcile.Result{}, err
+			}
+			r.Recorder.Event(instance, "Normal", "Updated", fmt.Sprintf("Updated resource. Attendance/Reason: %s/%s", desire.Status.Attendance, desire.Status.Reason))
 		}
-		log.Printf("Updated resource %s/%s\n", instance.Namespace, instance.Name)
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "Updated", fmt.Sprintf("Attendance: %s, Reason: %s", desire.Status.Attendance, desire.Status.Reason))
 	}
 
 	return ctrl.Result{}, nil
@@ -105,4 +91,12 @@ func (r *AttendanceBookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&officev1alpha1.AttendanceBook{}).
 		Complete(r)
+}
+
+func (r *AttendanceBookReconciler) changeStatus(desire, instance *officev1alpha1.AttendanceBook) error {
+	desire.Status.Attendance = instance.Spec.Attendance
+	desire.Status.Reason = instance.Spec.Reason
+	err := r.Status().Update(context.TODO(), desire)
+
+	return err
 }
