@@ -114,5 +114,10 @@ data:
     test-user4
 ```
 従業員リストに記載の無い従業員の `AttendanceBook` は、コントローラにより削除されるため、雇用者は正しく従業員の名前を設定する。
+```
+$ kubectl get event
+...
+11s         Normal   Deleted   attendancebook/test-user5    Deleted resource default/test-user5 due to no-listed name.
+```
 
 雇用者は Role/RoleBinding を作成し、従業員に対し「特定の Namespace 内の `AttendanceBook` のみ作成・閲覧・編集ができる」ように設定することもできる。
