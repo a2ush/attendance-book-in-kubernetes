@@ -17,6 +17,7 @@ limitations under the License.
 package controllers
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -42,6 +43,7 @@ type AttendanceBookReconciler struct {
 }
 
 var specified_namespace string
+var employeeList []string
 
 //+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks/status,verbs=get;update;patch
@@ -66,6 +68,9 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		r.Recorder.Event(instance, "Normal", "Deleted", fmt.Sprintf("Deleted resource %s", req.NamespacedName.String()))
 		return reconcile.Result{}, nil
 	}
+
+	// Delete object due to not-registerd employee.
+	fmt.Println(employeeList)
 
 	// Delete object if deployed namespace is not correct.
 	if req.NamespacedName.Namespace != specified_namespace {
@@ -113,6 +118,8 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // SetupWithManager sets up the controller with the Manager.
 func (r *AttendanceBookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	specified_namespace = GetNamespace()
+	employeeList = ReadEmployeeList("/mnt/employee-list")
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&officev1alpha1.AttendanceBook{}).
 		Complete(r)
@@ -132,4 +139,23 @@ func GetNamespace() string {
 		specified_namespace = "default"
 	}
 	return specified_namespace
+}
+
+func ReadEmployeeList(filename string) []string {
+
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	employeeList := make([]string, 0, 10)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		tmp := scanner.Text()
+		log.Println(tmp)
+		employeeList = append(employeeList, tmp)
+	}
+
+	return employeeList
 }

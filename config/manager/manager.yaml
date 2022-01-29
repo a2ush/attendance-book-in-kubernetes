@@ -61,5 +61,30 @@ spec:
           value: "default"
           name: TIMEZONE
           value: "Asia/Tokyo"
+        volumeMounts:
+        - mountPath: /mnt/employee-list
+          name: config-volume
+          readOnly: true
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: Employeelist
+            path: Employeelist
+          name: employee-list
+        name: config-volume      
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: employee-list
+  namespace: system
+data:
+  Employeelist: |
+    sample-user
+    test-user1
+    test-user2
+    test-user3
+    test-user4
