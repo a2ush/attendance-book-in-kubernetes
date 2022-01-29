@@ -69,24 +69,13 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return reconcile.Result{}, nil
 	}
 
-	// Delete object due to not-registerd employee.
-	fmt.Println(employeeList)
-
 	// Delete object if deployed namespace is not correct.
 	if req.NamespacedName.Namespace != specified_namespace {
 		log.Println("Delete due to other namespace.")
 
-		uid := instance.GetUID()
-		resourceVersion := instance.GetResourceVersion()
-		cond := metav1.Preconditions{
-			UID:             &uid,
-			ResourceVersion: &resourceVersion,
-		}
-		err = r.Delete(ctx, instance, &client.DeleteOptions{
-			Preconditions: &cond,
-		})
-		if err != nil {
+		if err = r.DeleteAttendanceBook(ctx, instance); err != nil {
 			log.Println(err)
+			return reconcile.Result{}, err
 		}
 		r.Recorder.Event(instance, "Normal", "Deleted", fmt.Sprintf("Deleted resource %s due to the namespace that is not allowed to deploy.", req.NamespacedName.String()))
 
@@ -99,6 +88,24 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 		// Status.Attendance is "" when first created.
 		if desire.Status.Attendance == "" {
+
+			// At first, confirm whether employee`s name is registerd or not.
+			for i, employee_name := range employeeList {
+				if req.NamespacedName.Name == employee_name {
+					break
+				} else {
+					if i == (len(employeeList) - 1) {
+						// Employee`s name is not registerd.
+						if err = r.DeleteAttendanceBook(ctx, instance); err != nil {
+							log.Println(err)
+							return reconcile.Result{}, err
+						}
+						r.Recorder.Event(instance, "Normal", "Deleted", fmt.Sprintf("Deleted resource %s due to no-listed name.", req.NamespacedName.String()))
+						return reconcile.Result{}, nil
+					}
+				}
+			}
+
 			if err = r.changeStatus(desire, instance); err != nil {
 				return reconcile.Result{}, err
 			}
@@ -158,4 +165,16 @@ func ReadEmployeeList(filename string) []string {
 	}
 
 	return employeeList
+}
+
+func (r *AttendanceBookReconciler) DeleteAttendanceBook(ctx context.Context, instance *officev1alpha1.AttendanceBook) error {
+	uid := instance.GetUID()
+	resourceVersion := instance.GetResourceVersion()
+	cond := metav1.Preconditions{
+		UID:             &uid,
+		ResourceVersion: &resourceVersion,
+	}
+	return r.Delete(ctx, instance, &client.DeleteOptions{
+		Preconditions: &cond,
+	})
 }
