@@ -19,7 +19,6 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
 	"os"
 	"time"
 
@@ -32,12 +31,12 @@ import (
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	officev1alpha1 "github.com/a2ush/attendance-book-in-kubernetes/api/v1alpha1"
 	"github.com/a2ush/attendance-book-in-kubernetes/controllers"
+	"github.com/a2ush/attendance-book-in-kubernetes/dailyprocess"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -98,17 +97,24 @@ func main() {
 	year := now.Year()
 	month := now.Month()
 	day := now.Day()
-	date := time.Date(year, month, day+1, 0, 0, 0, 0, time.Local) // ex. If now is 2021-12-25 17:00, "date" is set to 2021-12-26 00:00.
+
+	hour := now.Hour()
+	minute := now.Minute()
+	second := now.Second()
+
+	date := time.Date(year, month, day, hour, minute, second+30, 0, time.Local)
+
+	// date := time.Date(year, month, day+1, 0, 0, 0, 0, time.Local) // ex. If now is 2021-12-25 17:00, "date" is set to 2021-12-26 00:00.
 
 	go func() {
 		client := mgr.GetClient()
-
 		for {
 			select {
 			case <-time.After(date.Sub(time.Now())):
-				deleteAttendanceBook(context.TODO(), client)
-				// set next day
-				date = date.AddDate(0, 0, 1)
+				dailyprocess.DeleteAttendanceBook(context.Background(), client)
+				date = date.Add(time.Second * time.Duration(10))
+				// // set next day
+				// date = date.AddDate(0, 0, 1)
 			}
 		}
 	}()
@@ -127,24 +133,4 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-}
-
-func deleteAttendanceBook(ctx context.Context, cli client.Client) error {
-	var attendancebook officev1alpha1.AttendanceBook
-
-	err := cli.DeleteAllOf(ctx, &attendancebook)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	// err := cli.Get(ctx, client.ObjectKey{Namespace: "default", Name: "sample"}, &attendancebook)
-	// if err != nil {
-	// 	return err
-	// }
-	// cli.Delete(ctx, &attendancebook)
-
-	log.Println("Deleted all AttendanceBook.")
-
-	return nil
 }

@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	officev1alpha1 "github.com/a2ush/attendance-book-in-kubernetes/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // AttendanceBookReconciler reconciles a AttendanceBook object
@@ -37,6 +40,8 @@ type AttendanceBookReconciler struct {
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
+
+var specified_namespace string
 
 //+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks/status,verbs=get;update;patch
@@ -56,11 +61,28 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	_ = ctrllog.FromContext(ctx)
 
 	instance := &officev1alpha1.AttendanceBook{}
-
 	err := r.Get(ctx, req.NamespacedName, instance)
-
 	if err != nil && errors.IsNotFound(err) {
 		r.Recorder.Event(instance, "Normal", "Deleted", fmt.Sprintf("Deleted resource %s", req.NamespacedName.String()))
+		return reconcile.Result{}, nil
+	}
+
+	// Delete object if deployed namespace is not correct.
+	if req.NamespacedName.Namespace != specified_namespace {
+		log.Println("Delete due to other namespace.")
+
+		uid := instance.GetUID()
+		resourceVersion := instance.GetResourceVersion()
+		cond := metav1.Preconditions{
+			UID:             &uid,
+			ResourceVersion: &resourceVersion,
+		}
+		err = r.Delete(ctx, instance, &client.DeleteOptions{
+			Preconditions: &cond,
+		})
+		if err != nil {
+			log.Println(err)
+		}
 		return reconcile.Result{}, nil
 	}
 
@@ -88,6 +110,7 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *AttendanceBookReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	specified_namespace = GetNamespace()
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&officev1alpha1.AttendanceBook{}).
 		Complete(r)
@@ -99,4 +122,12 @@ func (r *AttendanceBookReconciler) changeStatus(desire, instance *officev1alpha1
 	err := r.Status().Update(context.TODO(), desire)
 
 	return err
+}
+
+func GetNamespace() string {
+	specified_namespace, found := os.LookupEnv("SPECIFIED_NAMESPACE")
+	if !found {
+		specified_namespace = "default"
+	}
+	return specified_namespace
 }

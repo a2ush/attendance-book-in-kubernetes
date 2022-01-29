@@ -1,0 +1,8 @@
+apiVersion: office.a2ush.dev/v1alpha1
+kind: AttendanceBook
+metadata:
+  name: test-user4
+  namespace: dev
+spec:
+  attendance: present
+  reason: "a bit delay :)"
