@@ -97,16 +97,3 @@ Events:
   Normal  Created  2m46s  attendancebook-controller  Created resource. Attendance/Reason: absent/Feel sleepy
   Normal  Updated  118s   attendancebook-controller  Updated resource. Attendance/Reason: present/My eyes are opened completely
 ```
-
-### Optional
-
- - 環境変数を設定し、デフォルトの挙動を変えることができる [[manifest]](config/manager/manager.yaml)
-```
-        env:
-        - name: SPECIFIED_NAMESPACE
-          value: "default"
-          name: TIMEZONE
-          value: "Asia/Tokyo"
-```
-`SPECIFIED_NAMESPACE` で指定した Namespace 以外に ab リソースをデプロイした場合、そのリソースは当コントローラによって即時削除される。<br>
-`TIMEZONE` は、どのタイムゾーンの 0:00 を指しているかを示すものである。

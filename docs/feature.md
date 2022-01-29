@@ -8,6 +8,18 @@
 
 このコントローラは `Kubebuilder` で作成されたもので、テスト環境は EKS となっています。
 
+## Option
+ - 環境変数を設定し、デフォルトの挙動を変えることができます [[manifest]](../config/manager/manager.yaml)
+```
+        env:
+        - name: SPECIFIED_NAMESPACE
+          value: "default"
+          name: TIMEZONE
+          value: "Asia/Tokyo"
+```
+`SPECIFIED_NAMESPACE` で指定した Namespace 以外に ab リソースをデプロイした場合、そのリソースは当コントローラによって即時削除されます。<br>
+`TIMEZONE` は、どのタイムゾーンの 0:00 を指しているかを示すものです。
+
 ## Work
 
 ### Reconcile の処理
