@@ -118,7 +118,7 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // SetupWithManager sets up the controller with the Manager.
 func (r *AttendanceBookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	specified_namespace = GetNamespace()
-	employeeList = ReadEmployeeList("/mnt/employee-list")
+	employeeList = ReadEmployeeList("mnt/employee-list/Employeelist")
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&officev1alpha1.AttendanceBook{}).
