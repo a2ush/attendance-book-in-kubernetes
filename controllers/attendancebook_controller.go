@@ -83,6 +83,8 @@ func (r *AttendanceBookReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err != nil {
 			log.Println(err)
 		}
+		r.Recorder.Event(instance, "Normal", "Deleted", fmt.Sprintf("Deleted resource %s due to the namespace that is not allowed to deploy.", req.NamespacedName.String()))
+
 		return reconcile.Result{}, nil
 	}
 

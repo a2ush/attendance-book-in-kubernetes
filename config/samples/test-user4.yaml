@@ -2,7 +2,6 @@ apiVersion: office.a2ush.dev/v1alpha1
 kind: AttendanceBook
 metadata:
   name: test-user4
-  namespace: dev
+  namespace: notpermitted
 spec:
   attendance: present
-  reason: "a bit delay :)"

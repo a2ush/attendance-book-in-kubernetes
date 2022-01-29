@@ -98,23 +98,17 @@ func main() {
 	month := now.Month()
 	day := now.Day()
 
-	hour := now.Hour()
-	minute := now.Minute()
-	second := now.Second()
-
-	date := time.Date(year, month, day, hour, minute, second+30, 0, time.Local)
-
-	// date := time.Date(year, month, day+1, 0, 0, 0, 0, time.Local) // ex. If now is 2021-12-25 17:00, "date" is set to 2021-12-26 00:00.
+	timezone, _ := time.LoadLocation(dailyprocess.GetTimezone())
+	date := time.Date(year, month, day+1, 0, 0, 0, 0, timezone) // ex. If now is 2021-12-25 17:00 JST, "date" is set to 2021-12-26 00:00 JST.
 
 	go func() {
 		client := mgr.GetClient()
 		for {
 			select {
-			case <-time.After(date.Sub(time.Now())):
+			case <-time.After(date.Sub(time.Now().In(timezone))):
 				dailyprocess.DeleteAttendanceBook(context.Background(), client)
-				date = date.Add(time.Second * time.Duration(10))
-				// // set next day
-				// date = date.AddDate(0, 0, 1)
+				// set next day
+				date = date.AddDate(0, 0, 1)
 			}
 		}
 	}()

@@ -3,6 +3,7 @@ package dailyprocess
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/a2ush/attendance-book-in-kubernetes/controllers"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,4 +22,12 @@ func DeleteAttendanceBook(ctx context.Context, cli client.Client) error {
 
 	log.Printf("Deleted all AttendanceBooks in %s.\n", specified_namespace)
 	return nil
+}
+
+func GetTimezone() string {
+	timezone, found := os.LookupEnv("TIMEZONE")
+	if !found {
+		timezone = "Asia/Tokyo"
+	}
+	return timezone
 }
