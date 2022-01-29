@@ -59,7 +59,7 @@ spec:
         env:
         - name: SPECIFIED_NAMESPACE
           value: "default"
-          name: TIMEZONE
+        - name: TIMEZONE
           value: "Asia/Tokyo"
         volumeMounts:
         - mountPath: /mnt/employee-list

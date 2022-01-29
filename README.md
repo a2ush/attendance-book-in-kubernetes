@@ -7,8 +7,8 @@
 
 「Kubernetes 上で勤怠管理アプリを動かすのではなく、"Kubernetes" を使って勤怠管理を行うこと」を目標とするコントローラ。
 
-メリット : 『俺たちは Kubernetes を使ってるぞ！』という優越感（？）に浸ることができる。<br>
-デメリット :  全くいらない
+メリット : 『俺たちは毎日 Kubernetes を使ってるぞ！』という謎の達成感（？）に浸ることができ、自社での運用例ができる。<br>
+※「それ、Kubernetes でやらなくてもいいよね？」は "効く術" なのでご法度です。
 
 当コントローラの機能・詳細は [こちら](docs/feature.md)
 
@@ -33,7 +33,7 @@ $ cat sample-manifest.yaml
 apiVersion: office.a2ush.dev/v1alpha1
 kind: AttendanceBook
 metadata:
-  name: sample-user
+  name: sample-user       # Your name
 spec:
   attendance: absent      # Input present or absent
   reason: "Feel sleepy"   # Optional
@@ -87,7 +87,7 @@ test-user1    present      Work is my life
 test-user2    absent       BLANK
 ```
 
-そして、雇用者は `kubectl describe ab` コマンドを実行することで、従業員がステータス変更を行ったかどうかを確認することができる。
+雇用者は `kubectl describe ab` コマンドを実行することで、従業員がステータス変更を行ったかどうかを確認することができる。
 ```
 $ kubectl describe ab sample-user
 ...
@@ -97,3 +97,22 @@ Events:
   Normal  Created  2m46s  attendancebook-controller  Created resource. Attendance/Reason: absent/Feel sleepy
   Normal  Updated  118s   attendancebook-controller  Updated resource. Attendance/Reason: present/My eyes are opened completely
 ```
+
+従業員の入れ替わり（入社/退社）が発生した場合は、雇用者は 従業員リスト(`employee-list` ConfigMap) を更新する。 [manifest](config/manager/manager.yaml)
+```
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: employee-list
+  namespace: system
+data:
+  Employeelist: |
+    sample-user
+    test-user1
+    test-user2
+    test-user3
+    test-user4
+```
+従業員リストに記載の無い従業員の `AttendanceBook` は、コントローラにより削除されるため、雇用者は正しく従業員の名前を設定する。
+
+雇用者は Role/RoleBinding を作成し、従業員に対し「特定の Namespace 内の `AttendanceBook` のみ作成・閲覧・編集ができる」ように設定することもできる。
