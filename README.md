@@ -5,10 +5,8 @@
 
 ## About this controller
 
-「Kubernetes 上で勤怠管理アプリを動かすのではなく、"Kubernetes" を使って勤怠管理を行うこと」を目標とするコントローラ。
-
-メリット : 『俺たちは毎日 Kubernetes を使ってるぞ！』という謎の達成感（？）に浸ることができ、自社での運用例ができる。<br>
-※「それ、Kubernetes でやらなくてもいいよね？」は "効く術" なのでご法度です。
+「Kubernetes 上で勤怠管理アプリを動かすのではなく、"Kubernetes" を使って勤怠管理を行うこと」を目標とするコントローラ。<br>
+当コントローラで勤怠管理を行うことで、 『俺たちは毎日 Kubernetes を使ってるぞ！』 という謎の達成感（？）に浸ることができる。
 
 当コントローラの機能・詳細は [こちら](docs/feature.md)
 
@@ -19,13 +17,13 @@
 ```
 $ git clone https://github.com/a2ush/attendance-book-in-kubernetes.git
 $ cd attendance-book-in-kubernetes
-$ make docker-build docker-push IMG=<registry>/<project-name>:tag
-$ make deploy IMG=<registry>/<project-name>:tag
+$ make docker-build docker-push IMG=<YOUR-REGISTRY>/<IMAGE-NAME>:tag
+$ make deploy IMG=<YOUR-REGISTRY>/<IMAGE-NAME>:tag
 ```
 
 ## How to use
 
-### Employee
+### For employee
 
 従業員は Custome Resource である `AttendanceBook (短縮名 ab)` をデプロイし、当日の出欠状況を伝える。 
 ```
@@ -74,9 +72,21 @@ $ kubectl patch ab sample-user --type='json' \
   -p='[{"op": "replace", "path": "/spec/attendance", "value": "present"}, {"op": "replace", "path": "/spec/reason", "value": "My eyes are opened completely"}]'
 ```
 
-デフォルトでは日本時間の 0:00 に全ての `AttendanceBook` が削除されるため、従業員は日毎に出欠状況を報告する必要がある。
+デフォルトでは、日本時間の 0:00 に全ての `AttendanceBook` が削除されるため、従業員は日毎に出欠状況を報告する必要がある。
+```
+$ TZ=JST-9 date; kubectl get ab
+Sat Jan 29 23:38:35 JST 2022
+NAME          ATTENDANCE   REASON
+sample-user   absent       My eyes are opened completely
+test-user1    present      well
+test-user2    absent       BLANK
 
-### Employer
+$ TZ=JST-9 date; kubectl get ab
+Sun Jan 30 00:00:03 JST 2022
+No resources found in default namespace.
+```
+
+### For employer
 
 雇用者は `kubectl get ab` コマンドを実行し、各従業員の出勤状況を確認する。
 ```
@@ -120,4 +130,4 @@ $ kubectl get event
 11s         Normal   Deleted   attendancebook/test-user5    Deleted resource default/test-user5 due to no-listed name.
 ```
 
-雇用者は Role/RoleBinding を作成し、従業員に対し「特定の Namespace 内の `AttendanceBook` のみ作成・閲覧・編集ができる」ように設定することもできる。
+雇用者は Role/RoleBinding([例](config/rbac/attendancebook_editor_role.yaml)) を作成し、従業員に対し「特定の Namespace 内の `AttendanceBook` のみ作成・閲覧・編集ができる」ように設定することもできる。
