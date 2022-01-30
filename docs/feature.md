@@ -3,8 +3,7 @@
 ## Environment
 
 「CRD も含めて何かカスタムコントローラを作る」ということを目的とし、当コントローラを作成しました。<br>
-全く実用的なものではないですが、実装していく上で様々な知見を得ることができたと思います。<br>
-ロジックなど処理が煩雑な箇所が多々ありますが、他のカスタムコントローラを作成する際に、当コントローラの実装が参考になれば（役に立てば）幸いです。
+ロジック等の処理が煩雑な箇所が散見されるかもしれませんが、他のカスタムコントローラを作成する際に、当コントローラの実装が参考になれば幸いです。
 
 このコントローラは `Kubebuilder` で作成されたもので、テスト環境は EKS となっています。
 
@@ -28,11 +27,19 @@ Custome Resource `AttendanceBook(短縮名 ab)` を検知し、controller.go 内
 
 ### 定期実行の処理（日毎に ab リソースを削除する処理）
 
-[main.go](../main.go) にて、"現在の時刻" と "次の日の 0:00" の差を取り、時間が来たら `dailyprocess.DeleteAttendanceBook()` を実行することで、定期実行を実現しています。<br>
+[main.go](../main.go) にて、"現在の時刻" と "次の日の 0:00" の差を取り、時間が来たら `dailyprocess.DeleteAttendanceBook()` を実行することで、定期実行を実現しています。
+goroutine による並列処理を行っているため、Reconcile の処理は妨げられません。<br>
 `dailyprocess.DeleteAttendanceBook()` では、`DeleteAllOf()` を使用し、指定した Namespace 内の全ての ab リソースを削除する処理を実行しています。
+なお、`DeleteAllOf()` を実行するためには、Kubernetes RBAC の `deletecollection` verb の実行を許可する必要があります。
+
+
+### 従業員リストに記載の無い従業員の AttendanceBook を削除する処理
+
+従業員リストは ConfigMap `employee-list` であり、当コントローラの Deployment リソースにマウントされています。
+従業員名は `employeeList` slice に格納され、ab リソースが最初に作成されたとき（desire.Status.Attendance が "" のとき）に、作成された ab リソース名が slice の要素にあるかどうかを確認しています。
+
 
 ## Future Feature 
 
 * Leader election
-* Read/Write custom ConfigMap
 * Put logs to the other place (e.g. S3)
