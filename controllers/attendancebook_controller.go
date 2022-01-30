@@ -45,7 +45,7 @@ type AttendanceBookReconciler struct {
 var specified_namespace string
 var employeeList []string
 
-//+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks,verbs=get;list;watch;create;update;patch;delete;deletecollection
 //+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=office.a2ush.dev,resources=attendancebooks/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=events,verbs=create;update;patch
