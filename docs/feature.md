@@ -35,11 +35,31 @@ goroutine による並列処理を行っているため、Reconcile の処理は
 
 ### 従業員リストに記載の無い従業員の AttendanceBook を削除する処理
 
-従業員リストは ConfigMap `employee-list` であり、当コントローラの Deployment リソースにマウントされています。
+従業員リストは ConfigMap `employee-list` であり、当コントローラの Deployment リソースにマウントされています。 <br>
 従業員名は `employeeList` slice に格納され、ab リソースが最初に作成されたとき（desire.Status.Attendance が "" のとき）に、作成された ab リソース名が slice の要素にあるかどうかを確認しています。
 
+### リーダー選出
+
+Kuberbuilder v3 では、デフォルトでリーダー選出の機能が有効になっています。<br>
+ConfigMap `094dacd8.a2ush.dev` に現在のリーダーの情報が記載されます。
+```
+$ k get po -n attendance-book-in-kubernetes-system 
+NAME                                                              READY   STATUS    RESTARTS   AGE
+attendance-book-in-kubernetes-controller-manager-7cc588799m7t4k   1/1     Running   0          77s
+attendance-book-in-kubernetes-controller-manager-7cc588799zvqzj   1/1     Running   0          77s
+
+$ kubectl get cm -n attendance-book-in-kubernetes-system 094dacd8.a2ush.dev -oyaml | grep leader
+    control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"attendance-book-in-kubernetes-controller-manager-7cc588799zvqzj_a053b184-2db7-4827-95b4-3e079dc19e2d","leaseDurationSeconds":15,"acquireTime":"2022-02-10T12:58:42Z","renewTime":"2022-02-10T14:25:21Z","leaderTransitions":0}
+```
+リーダーに選ばれたコントローラは、以下のようなログが記録されます。
+```
+$ kubectl logs -n attendance-book-in-kubernetes-system attendance-book-in-kubernetes-controller-manager-7cc588799zvqzj
+...
+I0210 12:58:42.782951       1 leaderelection.go:248] attempting to acquire leader lease attendance-book-in-kubernetes-system/094dacd8.a2ush.dev...
+I0210 12:58:42.809579       1 leaderelection.go:258] successfully acquired lease attendance-book-in-kubernetes-system/094dacd8.a2ush.dev
+...
+```
 
 ## Future Feature 
 
-* Leader election
-* Put logs to the other place (e.g. S3)
+* Put logs to the other place (e.g. Amazon S3 bucket)
