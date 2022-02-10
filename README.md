@@ -75,14 +75,14 @@ $ kubectl patch ab sample-user --type='json' \
 デフォルトでは、日本時間の 0:00 に全ての `AttendanceBook` が削除されるため、従業員は日毎に出欠状況を報告する必要がある。
 ```
 $ TZ=JST-9 date; kubectl get ab
-Sat Jan 29 23:38:35 JST 2022
-NAME          ATTENDANCE   REASON
-sample-user   absent       My eyes are opened completely
-test-user1    present      well
-test-user2    absent       BLANK
+Thu Feb 10 23:50:51 JST 2022
+NAME          ATTENDANCE   REASON                          REPORT TIME
+sample-user   present      My eyes are opened completely   2022-02-10T14:46:55Z
+test-user1    present      well                            2022-02-10T14:47:02Z
+test-user2    absent       BLANK                           2022-02-10T14:47:05Z
 
 $ TZ=JST-9 date; kubectl get ab
-Sun Jan 30 00:00:03 JST 2022
+Fri Feb 11 00:00:56 JST 2022
 No resources found in default namespace.
 ```
 
@@ -91,10 +91,10 @@ No resources found in default namespace.
 雇用者は `kubectl get ab` コマンドを実行し、各従業員の出勤状況を確認する。
 ```
 $ kubectl get ab
-NAME          ATTENDANCE   REASON
-sample-user   present      My eyes are opened completely
-test-user1    present      Work is my life
-test-user2    absent       BLANK
+NAME          ATTENDANCE   REASON                          REPORT TIME
+sample-user   present      My eyes are opened completely   2022-02-10T14:46:55Z
+test-user1    present      well                            2022-02-10T14:47:02Z
+test-user2    absent       BLANK                           2022-02-10T14:47:05Z
 ```
 
 雇用者は `kubectl describe ab` コマンドを実行することで、従業員がステータス変更を行ったかどうかを確認することができる。
