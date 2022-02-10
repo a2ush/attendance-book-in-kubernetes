@@ -24,6 +24,9 @@ spec:
     - jsonPath: .status.reason
       name: REASON
       type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: REPORT TIME
+      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:

@@ -50,6 +50,7 @@ type AttendanceBookStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="ATTENDANCE",type="string",JSONPath=".status.attendance"
 //+kubebuilder:printcolumn:name="REASON",type="string",JSONPath=".status.reason"
+//+kubebuilder:printcolumn:name="REPORT TIME",type="string",JSONPath=".metadata.creationTimestamp"
 
 // AttendanceBook is the Schema for the attendancebooks API
 type AttendanceBook struct {
