@@ -160,7 +160,6 @@ func ReadEmployeeList(filename string) []string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		tmp := scanner.Text()
-		log.Println(tmp)
 		employeeList = append(employeeList, tmp)
 	}
 
